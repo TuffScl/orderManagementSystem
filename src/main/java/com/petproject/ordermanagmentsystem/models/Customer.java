@@ -34,13 +34,8 @@ public class Customer {
     @Column(name="address")
     private String address;
 
-    public Customer(String firstName, String lastName, String email, long phone, String address) {
-        this.firstName = firstName;
-        this.lastName = lastName;
-        this.email = email;
-        this.phone = phone;
-        this.address = address;
-    }
+    @Column(name="balance")
+    private int balance;
 
     @OneToMany(mappedBy = "owner")
     private List<Order> orders;

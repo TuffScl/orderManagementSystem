@@ -38,12 +38,6 @@ public class OrderProductService {
         Order order = orderRepository.findByOwnerAndId(customer, orderId).orElseThrow(()->
                 new EntityNotFoundException("Order with id " + orderId + " does not exist"));
 
-
-
-//
-//        Order order = orderRepository.findById(orderId)
-//                .orElseThrow(() -> new EntityNotFoundException("Order not found"));
-
         return orderProductRepository.findByOrder(order);
     }
 

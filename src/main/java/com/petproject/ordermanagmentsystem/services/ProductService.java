@@ -7,6 +7,7 @@ import com.petproject.ordermanagmentsystem.models.Tag;
 import com.petproject.ordermanagmentsystem.repositories.ProductRepository;
 import com.petproject.ordermanagmentsystem.utils.ResourceNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,7 +38,6 @@ public class ProductService {
     }
 
 
-
     @Transactional
     public Product updateOrderById(int id, Product product) {
         if(productRepository.existsById(id)) {
@@ -55,17 +55,22 @@ public class ProductService {
         else throw new ResourceNotFoundException("Product with id "+ id + " does not exist!");
     }
 
-    public List<Product> getProductsByCategory(Category category){
-        return productRepository.findByCategory(category);
+    public List<Product> getProductsByCategoryName(String categoryName){
+        return productRepository.findProductsByCategoryName(categoryName);
     }
 
     public List<Product> getProductsByTags(List<Tag> tags) {
         return productRepository.findByTags(tags, (long) tags.size());
     }
 
+    public List<Product> getProductsByTagsName(List<String> tagsName){
+        return  productRepository.findProductsByAllTagNames(tagsName, tagsName.size());
+    }
+
     public List<Product> getProductsByNameStartingWith(String prefix) {
         return productRepository.findByNameStartingWith(prefix);
     }
+
 
 
 

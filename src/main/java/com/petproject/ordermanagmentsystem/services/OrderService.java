@@ -132,15 +132,14 @@ public class OrderService {
     public void changeStatus(int orderId, int customerId){
         Customer customer = customerRepository.findById(customerId).orElseThrow(()->
                 new EntityNotFoundException("Customer with id "+ customerId+ " does not exist"));
-
         Order order = orderRepository.findByOwnerAndId(customer, orderId).orElseThrow(()->
                 new EntityNotFoundException("Order with id "+ orderId + " does not exist"));
-
         switch (order.getStatus()){
             case CART -> {
                 order.setStatus(OrderStatus.PLACE);
 
                 List<OrderProduct> orderProducts = orderProductRepository.findByOrder(order);
+                int fullPrice=0;
 
                 for (OrderProduct orderProduct : orderProducts) {
                     Product product = orderProduct.getProduct();
@@ -149,10 +148,18 @@ public class OrderService {
                     if (product.getQuantity() < orderedQuantity) {
                         throw new IllegalStateException("Not enough stock for product: " + product.getName());
                     }
+                    fullPrice += product.getPrice()*orderedQuantity;
                     // Уменьшаем количество товара на складе
                     product.setQuantity(product.getQuantity() - orderedQuantity);
                     productRepository.save(product);  // Сохраняем изменения в базе
                 }
+                if (customer.getBalance()>fullPrice){
+                    customer.setBalance(customer.getBalance()-fullPrice);
+                    customerRepository.save(customer);
+                }
+                    else {
+                        throw new ResourceNotFoundException("Not enough money");
+                    }
             }
             case PLACE -> order.setStatus(OrderStatus.ON_THE_WAY);
             case ON_THE_WAY -> order.setStatus(OrderStatus.DELIVERED);
@@ -160,8 +167,6 @@ public class OrderService {
                 return;
             }
         }
-
-
         orderRepository.save(order);
     }
 
@@ -181,13 +186,6 @@ public class OrderService {
 
     }
 
-    public static Order newOrder(Customer customer){
-        Order order = new Order();
-        order.setOrderDateTime(new Timestamp(System.currentTimeMillis()));
-        order.setOwner(customer);
-        order.setStatus(OrderStatus.CART);
-        return order;
-    }
 
     public List<Product> getProductsByOrderId(int customerId, int orderId){
         Customer customer = customerRepository.findById(customerId).orElseThrow(()->
@@ -198,6 +196,15 @@ public class OrderService {
 
         return order.getProducts();
 
+    }
+
+
+    public static Order newOrder(Customer customer){
+        Order order = new Order();
+        order.setOrderDateTime(new Timestamp(System.currentTimeMillis()));
+        order.setOwner(customer);
+        order.setStatus(OrderStatus.CART);
+        return order;
     }
 
 }
